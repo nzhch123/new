@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>案件卷宗笔录智能化管理 · 需求调研纪要</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #12202e;
+      --ink-soft: #3a4f63;
+      --steel: #4a6b82;
+      --mist: #e6eef4;
+      --fog: #f3f7fa;
+      --paper: #fafcfd;
+      --line: rgba(18, 32, 46, 0.12);
+      --accent: #0b6e6a;
+      --accent-deep: #085552;
+      --signal: #c9782a;
+      --hero-from: #0f2a3d;
+      --hero-mid: #1a4560;
+      --hero-to: #0d7377;
+      --radius: 2px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(13, 115, 119, 0.06), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 20%, rgba(74, 107, 130, 0.08), transparent 45%),
+        linear-gradient(180deg, var(--fog) 0%, var(--mist) 40%, var(--paper) 100%);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* —— Nav —— */
+    .nav {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 4vw;
+      background: transparent;
+      transition: background 0.4s var(--ease), backdrop-filter 0.4s var(--ease), box-shadow 0.4s var(--ease);
+    }
+
+    .nav.is-scrolled {
+      background: rgba(250, 252, 253, 0.88);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    .nav-brand {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.75rem;
+      list-style: none;
+      font-size: 0.875rem;
+      color: var(--ink-soft);
+    }
+
+    .nav-links a {
+      position: relative;
+      transition: color 0.25s;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 1.5px;
+      background: var(--accent);
+      transition: width 0.3s var(--ease);
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--steel);
+      letter-spacing: 0.02em;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      align-items: end;
+      padding: 7rem 6vw 4.5rem;
+      color: #f4f8fa;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(115deg, var(--hero-from) 0%, var(--hero-mid) 48%, var(--hero-to) 100%);
+    }
+
+    .hero-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          -12deg,
+          transparent,
+          transparent 48px,
+          rgba(255, 255, 255, 0.025) 48px,
+          rgba(255, 255, 255, 0.025) 49px
+        );
+      animation: drift 28s linear infinite;
+    }
+
+    .hero-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 75% 35%, rgba(255, 255, 255, 0.14), transparent 55%),
+        radial-gradient(ellipse 40% 50% at 15% 80%, rgba(11, 110, 106, 0.35), transparent 60%);
+    }
+
+    .hero-visual {
+      position: absolute;
+      right: -2%;
+      top: 12%;
+      width: min(52vw, 640px);
+      height: min(70vh, 560px);
+      z-index: -1;
+      opacity: 0;
+      animation: fadeRise 1.2s var(--ease) 0.2s forwards;
+      pointer-events: none;
+    }
+
+    .dossier {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-4deg);
+    }
+
+    .dossier-sheet {
+      position: absolute;
+      inset: 8% 12% 12% 18%;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .dossier-sheet:nth-child(1) {
+      transform: translate(18px, -14px) rotate(3deg);
+      opacity: 0.55;
+    }
+
+    .dossier-sheet:nth-child(2) {
+      transform: translate(8px, -6px) rotate(1.2deg);
+      opacity: 0.75;
+    }
+
+    .dossier-sheet:nth-child(3) {
+      padding: 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .dossier-line {
+      height: 2px;
+      background: rgba(255, 255, 255, 0.28);
+      border-radius: 1px;
+      transform-origin: left;
+      animation: growLine 1.4s var(--ease) forwards;
+      opacity: 0;
+    }
+
+    .dossier-line:nth-child(1) { width: 42%; animation-delay: 0.6s; }
+    .dossier-line:nth-child(2) { width: 88%; animation-delay: 0.75s; }
+    .dossier-line:nth-child(3) { width: 76%; animation-delay: 0.9s; }
+    .dossier-line:nth-child(4) { width: 92%; animation-delay: 1.05s; }
+    .dossier-line:nth-child(5) { width: 64%; animation-delay: 1.2s; }
+    .dossier-line:nth-child(6) { width: 81%; animation-delay: 1.35s; }
+    .dossier-line.accent {
+      height: 28px;
+      width: 36%;
+      background: rgba(201, 120, 42, 0.45);
+      margin-bottom: 0.4rem;
+      animation-delay: 0.5s;
+    }
+
+    .dossier-stamp {
+      position: absolute;
+      right: 14%;
+      bottom: 22%;
+      width: 88px;
+      height: 88px;
+      border: 2px solid rgba(201, 120, 42, 0.7);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: "Noto Serif SC", serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: rgba(255, 220, 180, 0.9);
+      transform: rotate(-18deg);
+      opacity: 0;
+      animation: stampIn 0.7s var(--ease) 1.5s forwards;
+    }
+
+    .hero-content {
+      max-width: 640px;
+      opacity: 0;
+      animation: fadeRise 1s var(--ease) 0.1s forwards;
+    }
+
+    .hero-brand {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 900;
+      font-size: clamp(2.6rem, 6.5vw, 4.4rem);
+      line-height: 1.12;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.25rem;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-headline {
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      font-weight: 500;
+      color: rgba(244, 248, 250, 0.88);
+      margin-bottom: 0.85rem;
+      max-width: 28em;
+    }
+
+    .hero-lead {
+      font-size: 0.95rem;
+      color: rgba(244, 248, 250, 0.68);
+      max-width: 32em;
+      margin-bottom: 2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.85rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.25s var(--ease), background 0.25s, color 0.25s, border-color 0.25s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: #f4f8fa;
+      color: var(--hero-from);
+    }
+
+    .btn-primary:hover {
+      background: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #f4f8fa;
+      border: 1px solid rgba(244, 248, 250, 0.35);
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(244, 248, 250, 0.7);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 6vw;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(244, 248, 250, 0.45);
+      opacity: 0;
+      animation: fadeRise 0.8s var(--ease) 1.8s forwards;
+    }
+
+    /* —— Sections —— */
+    .section {
+      padding: 5.5rem 6vw;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
+      font-size: clamp(1.75rem, 3.5vw, 2.4rem);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+      max-width: 16em;
+    }
+
+    .section-desc {
+      color: var(--ink-soft);
+      max-width: 40em;
+      margin-bottom: 2.5rem;
+      font-size: 1rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* —— Meta strip —— */
+    .meta-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      margin: 0 6vw;
+      max-width: none;
+    }
+
+    .meta-item {
+      padding: 1.75rem 1.5rem;
+      border-right: 1px solid var(--line);
+    }
+
+    .meta-item:last-child {
+      border-right: none;
+    }
+
+    .meta-item dt {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.5rem;
+    }
+
+    .meta-item dd {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    /* —— Goals —— */
+    .goal-block {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 3.5rem;
+      align-items: start;
+    }
+
+    .goal-copy p {
+      color: var(--ink-soft);
+      margin-bottom: 1.25rem;
+      font-size: 1.02rem;
+    }
+
+    .goal-highlight {
+      border-left: 3px solid var(--accent);
+      padding-left: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .goal-highlight strong {
+      display: block;
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.15rem;
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.35rem;
+      bottom: 0.35rem;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), var(--steel));
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 1.75rem;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -1.5rem;
+      top: 0.45rem;
+      width: 8px;
+      height: 8px;
+      margin-left: -3px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--fog);
+    }
+
+    .timeline-date {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-text {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+    }
+
+    /* —— Business —— */
+    .biz-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem 3rem;
+    }
+
+    .biz-stat {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      margin-bottom: 0.5rem;
+    }
+
+    .biz-stat > div {
+      background: var(--paper);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+    }
+
+    .biz-stat .num {
+      font-family: "Noto Serif SC", serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-deep);
+      line-height: 1.2;
+    }
+
+    .biz-stat .label {
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+      margin-top: 0.35rem;
+    }
+
+    .flow {
+      border-top: 1px solid var(--line);
+      padding-top: 1.5rem;
+    }
+
+    .flow h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.15rem;
+      margin-bottom: 0.85rem;
+      font-weight: 700;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0;
+      align-items: center;
+      font-size: 0.88rem;
+      color: var(--ink-soft);
+    }
+
+    .flow-steps span {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .flow-steps span:not(:last-child)::after {
+      content: "→";
+      margin: 0 0.55rem;
+      color: var(--accent);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* —— Modes —— */
+    .modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .mode {
+      padding: 2rem 0;
+      border-top: 2px solid var(--ink);
+    }
+
+    .mode-tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--signal);
+      margin-bottom: 0.6rem;
+    }
+
+    .mode h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.35rem;
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .mode p {
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .network-note {
+      margin-top: 2.5rem;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .network-note .badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 0.65rem 0.9rem;
+      background: var(--ink);
+      color: #f4f8fa;
+      white-space: nowrap;
+    }
+
+    .network-note p {
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    /* —— Workflow —— */
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      counter-reset: phase;
+    }
+
+    .phase {
+      padding: 2rem 1.75rem 2rem 0;
+      border-right: 1px solid var(--line);
+      padding-right: 1.75rem;
+      margin-right: 1.75rem;
+      counter-increment: phase;
+    }
+
+    .phase:last-child {
+      border-right: none;
+      margin-right: 0;
+      padding-right: 0;
+    }
+
+    .phase::before {
+      content: "0" counter(phase);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+
+    .phase h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.25rem;
+      margin-bottom: 0.65rem;
+      font-weight: 700;
+    }
+
+    .phase p {
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+    }
+
+    /* —— Modules —— */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem 2rem;
+    }
+
+    .module {
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--line);
+      transition: border-color 0.3s;
+    }
+
+    .module:hover {
+      border-top-color: var(--accent);
+    }
+
+    .module-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--steel);
+      margin-bottom: 0.5rem;
+    }
+
+    .module h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .module p {
+      font-size: 0.88rem;
+      color: var(--ink-soft);
+    }
+
+    /* —— Knowledge —— */
+    .topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.5rem;
+    }
+
+    .topic {
+      font-size: 0.88rem;
+      padding: 0.55rem 1rem;
+      background: rgba(11, 110, 106, 0.08);
+      color: var(--accent-deep);
+      border: 1px solid rgba(11, 110, 106, 0.18);
+      transition: background 0.25s, transform 0.25s var(--ease);
+    }
+
+    .topic:hover {
+      background: rgba(11, 110, 106, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .knowledge-list {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .knowledge-list li {
+      list-style: none;
+      padding-left: 1.1rem;
+      position: relative;
+      color: var(--ink-soft);
+      font-size: 0.95rem;
+    }
+
+    .knowledge-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.65em;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+    }
+
+    /* —— Core asks —— */
+    .asks {
+      background: linear-gradient(135deg, var(--hero-from), var(--hero-mid) 60%, var(--accent-deep));
+      color: #f4f8fa;
+      padding: 5rem 6vw;
+      margin: 2rem 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .asks::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 80px,
+          rgba(255, 255, 255, 0.03) 80px,
+          rgba(255, 255, 255, 0.03) 81px
+        );
+      pointer-events: none;
+    }
+
+    .asks-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .asks .section-label {
+      color: rgba(201, 120, 42, 0.95);
+    }
+
+    .asks .section-title {
+      color: #f4f8fa;
+      margin-bottom: 2rem;
+    }
+
+    .ask-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem 3rem;
+      list-style: none;
+    }
+
+    .ask-list li {
+      padding: 1rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 1.02rem;
+      color: rgba(244, 248, 250, 0.88);
+    }
+
+    /* —— Footer —— */
+    footer {
+      padding: 3rem 6vw;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.5rem;
+      color: var(--ink-soft);
+      font-size: 0.85rem;
+    }
+
+    footer strong {
+      font-family: "Noto Serif SC", serif;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    /* —— Animations —— */
+    @keyframes fadeRise {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes growLine {
+      from { opacity: 0; transform: scaleX(0); }
+      to { opacity: 1; transform: scaleX(1); }
+    }
+
+    @keyframes stampIn {
+      from { opacity: 0; transform: rotate(-18deg) scale(0.7); }
+      to { opacity: 1; transform: rotate(-18deg) scale(1); }
+    }
+
+    @keyframes drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(-48px); }
+    }
+
+    /* —— Responsive —— */
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .hero { padding-bottom: 5rem; }
+      .hero-visual {
+        width: min(70vw, 420px);
+        height: 380px;
+        top: 8%;
+        opacity: 0.55;
+      }
+      .goal-block,
+      .biz-layout,
+      .modes,
+      .workflow,
+      .modules-grid,
+      .ask-list,
+      .knowledge-list,
+      .meta-strip,
+      .biz-stat {
+        grid-template-columns: 1fr;
+      }
+      .meta-item,
+      .phase {
+        border-right: none;
+        margin-right: 0;
+        padding-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .phase:last-child { border-bottom: none; }
+      .workflow .phase { margin-bottom: 0.5rem; }
+      .modules-grid { gap: 0; }
+      .network-note { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .hero-brand { font-size: 2.2rem; }
+      .hero-visual { display: none; }
+      .section { padding: 4rem 5vw; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav" aria-label="页面导航">
+    <div class="nav-brand">笔录智能管理</div>
+    <ul class="nav-links">
+      <li><a href="#overview">项目概况</a></li>
+      <li><a href="#business">业务现状</a></li>
+      <li><a href="#requirements">核心需求</a></li>
+      <li><a href="#modules">功能规划</a></li>
+      <li><a href="#goals">建设诉求</a></li>
+    </ul>
+    <div class="nav-meta">2026.09.03</div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="dossier">
+        <div class="dossier-sheet"></div>
+        <div class="dossier-sheet"></div>
+        <div class="dossier-sheet">
+          <div class="dossier-line accent"></div>
+          <div class="dossier-line"></div>
+          <div class="dossier-line"></div>
+          <div class="dossier-line"></div>
+          <div class="dossier-line"></div>
+          <div class="dossier-line"></div>
+          <div class="dossier-line"></div>
+        </div>
+        <div class="dossier-stamp">卷宗</div>
+      </div>
+    </div>
+    <div class="hero-content">
+      <h1 class="hero-brand">案件卷宗笔录<br />智能化管理</h1>
+      <p class="hero-headline">白云公安分局 · 项目前期需求调研会议纪要</p>
+      <p class="hero-lead">汇聚多源案件数据，自动生成规范笔录，并以知识库与大模型能力贯穿办案前中后全流程，提升效率、降低退卷与违规风险。</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#overview">查看纪要要点</a>
+        <a class="btn btn-ghost" href="#modules">软件功能规划</a>
+      </div>
+    </div>
+    <div class="hero-scroll">Scroll · 向下浏览</div>
+  </header>
+
+  <dl class="meta-strip reveal">
+    <div class="meta-item">
+      <dt>会议时间</dt>
+      <dd>2026年9月3日</dd>
+    </div>
+    <div class="meta-item">
+      <dt>参会单位</dt>
+      <dd>白云公安分局情报指挥中心 · 云百科技</dd>
+    </div>
+    <div class="meta-item">
+      <dt>会议主题</dt>
+      <dd>案件卷宗笔录智能化管理项目前期需求调研</dd>
+    </div>
+  </dl>
+
+  <section class="section" id="overview">
+    <div class="reveal">
+      <p class="section-label">01 · Project</p>
+      <h2 class="section-title">项目基本信息</h2>
+      <p class="section-desc">围绕卷宗笔录智能化工具建设目标与推进节奏，明确预算与评审节点。</p>
+    </div>
+    <div class="goal-block reveal">
+      <div class="goal-copy">
+        <p>建设卷宗笔录智能化管理工具，汇聚多源异构案件数据，完成数据标准化与结构化处理，自动生成卷宗笔录；搭建多类案件主题知识库，依托大模型与 RAG 技术，为民警输出案件分析与行动处置建议。</p>
+        <div class="goal-highlight">
+          <strong>建设价值</strong>
+          <span style="color: var(--ink-soft); font-size: 0.95rem;">提升办案效率，降低卷宗证据错漏、案件退回、误判及办案违规风险。</span>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">2026.10</div>
+          <div class="timeline-text">完成下一年度预算申报；预算 50 万以上需编制立项方案。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2027.03</div>
+          <div class="timeline-text">计划开展造价评审、专家评审，推进项目立项落地。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">建设方向</div>
+          <div class="timeline-text">软件能力 + 知识库 + 可选专用交互硬件，适配一线办案场景。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="business">
+    <div class="reveal">
+      <p class="section-label">02 · Business</p>
+      <h2 class="section-title">业务描述与现状</h2>
+      <p class="section-desc">刑侦办案以案件档案为信息挖掘基础，笔录是核心材料；需兼顾民警信息化水平与现场设备条件。</p>
+    </div>
+    <div class="biz-layout reveal">
+      <div class="biz-stat">
+        <div>
+          <div class="num">≈2600</div>
+          <div class="label">白云区民警人数</div>
+        </div>
+        <div>
+          <div class="num">45+</div>
+          <div class="label">平均年龄（岁）</div>
+        </div>
+        <div>
+          <div class="num">≈20</div>
+          <div class="label">团伙作案年均起数</div>
+        </div>
+      </div>
+      <div class="flow">
+        <h3>盗窃案典型流程</h3>
+        <div class="flow-steps">
+          <span>接警</span>
+          <span>询问当事人</span>
+          <span>监控挖线索</span>
+          <span>锁定证据</span>
+          <span>讯问嫌疑人</span>
+          <span>认罪判罚</span>
+        </div>
+      </div>
+      <div class="flow">
+        <h3>赌博案典型流程</h3>
+        <div class="flow-steps">
+          <span>接警</span>
+          <span>讯问嫌疑人</span>
+          <span>核查资金/场地/赌具</span>
+          <span>笔录一致性核验</span>
+          <span>认罪判罚</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="requirements">
+    <div class="reveal">
+      <p class="section-label">03 · Requirements</p>
+      <h2 class="section-title">两种笔录生成模式</h2>
+      <p class="section-desc">覆盖事后整理与现场实时两类场景，并兼顾断网办案环境。</p>
+    </div>
+    <div class="modes reveal">
+      <article class="mode">
+        <div class="mode-tag">MODE 01</div>
+        <h3>文件上传生成笔录</h3>
+        <p>支持音频、图片、文档等多格式导入，汇聚后自动结构化并按公安规范格式输出卷宗笔录。</p>
+      </article>
+      <article class="mode">
+        <div class="mode-tag">MODE 02</div>
+        <h3>边问边录实时生成</h3>
+        <p>审讯/问话过程中实时转写；兼容手机、电脑、录音设备采集，需解决环境降噪；可规划专用交互硬件，集成录音与问话建议。</p>
+      </article>
+    </div>
+    <div class="network-note reveal">
+      <div class="badge">离线 + 在线</div>
+      <p>双网络适配：支持联网与断网两套运行模式，保障拘留所、看守所等无网络办案场景可正常使用。</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="reveal">
+      <p class="section-label">04 · Workflow</p>
+      <h2 class="section-title">办案全流程业务需求</h2>
+      <p class="section-desc">以知识库与智能校验贯穿出警前、问话中、问话结束后三个阶段。</p>
+    </div>
+    <div class="workflow reveal">
+      <article class="phase">
+        <h3>出警前</h3>
+        <p>录入案件基础信息，系统依托知识库输出出警准备事项、问话清单等行动建议。</p>
+      </article>
+      <article class="phase">
+        <h3>问话中</h3>
+        <p>实时生成笔录，动态推送下一步问话提示，执行笔录一致性校验，规避问话不全与供述前后矛盾。</p>
+      </article>
+      <article class="phase">
+        <h3>问话结束后</h3>
+        <p>输出完整卷宗笔录，提示需补充的配套证据材料（如赌博案提示补充赌具、筹码等物证）。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="modules">
+    <div class="reveal">
+      <p class="section-label">05 · Modules</p>
+      <h2 class="section-title">软件功能规划</h2>
+      <p class="section-desc">九大模块覆盖数据汇聚、笔录生成、智能校验、知识库与网络适配能力。</p>
+    </div>
+    <div class="modules-grid">
+      <article class="module reveal">
+        <div class="module-num">01</div>
+        <h3>多源数据汇聚</h3>
+        <p>系统对接、扫描件/图片/文档导入、录音上传，汇聚异构案件证据数据。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">02</div>
+        <h3>数据处理与卷宗生成</h3>
+        <p>标准化、结构化处理，按公安规范格式输出卷宗与笔录文件。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">03</div>
+        <h3>实时问话笔录</h3>
+        <p>语音转写、降噪处理；联动知识库推送问话建议，并做供述一致性检查。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">04</div>
+        <h3>智能识别</h3>
+        <p>图片、文档识别；异常时可读取文件名辅助判定材料类型。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">05</div>
+        <h3>卷宗智能校验</h3>
+        <p>全面性、一致性、合规性核查；团伙作案多份笔录交叉比对，提示缺失证据。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">06</div>
+        <h3>主题知识库管理</h3>
+        <p>维护多类案件主题库，涵盖法律法规、历史卷宗、检法退卷意见，支持更新维护。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">07</div>
+        <h3>智能分析建议</h3>
+        <p>大模型 + RAG：出警处置建议、问话指引、案件分析与风险提示，预防违规操作。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">08</div>
+        <h3>网络适配</h3>
+        <p>在线联网模式与离线单机模式，保障看守所、拘留所断网环境可用。</p>
+      </article>
+      <article class="module reveal">
+        <div class="module-num">09</div>
+        <h3>配套硬件适配</h3>
+        <p>兼容现有手机、电脑、录音设备；规划专用交互式问话设备。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="reveal">
+      <p class="section-label">06 · Knowledge</p>
+      <h2 class="section-title">案件主题知识库</h2>
+      <p class="section-desc">按案件类型沉淀法规、历史笔录与退卷意见，支撑智能提示与校验。</p>
+      <div class="topics">
+        <span class="topic">盗窃</span>
+        <span class="topic">强奸猥亵</span>
+        <span class="topic">打架斗殴</span>
+        <span class="topic">诈骗</span>
+        <span class="topic">赌博</span>
+        <span class="topic">团伙作案</span>
+      </div>
+      <ul class="knowledge-list">
+        <li>法律法规条文与适用要点</li>
+        <li>历史卷宗笔录样本与经验</li>
+        <li>检法机关退卷意见沉淀</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="asks" id="goals">
+    <div class="asks-inner reveal">
+      <p class="section-label">07 · Core Asks</p>
+      <h2 class="section-title">建设核心诉求</h2>
+      <ul class="ask-list">
+        <li>提高民警办案效率，缩短笔录整理与材料归集时间</li>
+        <li>智能提示规避办案违规，降低操作风险</li>
+        <li>通过校验减少卷宗错漏与证据不足，防范退卷、误判</li>
+        <li>适配辖区民警信息化使用水平，降低学习与使用门槛</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <strong>白云公安 · 案件卷宗笔录智能化管理</strong><br />
+      会议纪要可视化页面 · 依据 2026年9月3日调研纪要整理
+    </div>
+    <div>
+      参会：白云公安分局情报指挥中心；云百科技：边琳、吴畏竟、陈嘉隆
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const nav = document.getElementById("nav");
+      const onScroll = () => {
+        nav.classList.toggle("is-scrolled", window.scrollY > 40);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      const reveals = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+        );
+        reveals.forEach((el) => io.observe(el));
+      } else {
+        reveals.forEach((el) => el.classList.add("is-visible"));
+      }
+    })();
+  </script>
+</body>
+</html>

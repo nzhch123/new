@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>建设内容 · 九大功能模块｜案件卷宗笔录智能化管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #152028;
+      --ink-muted: #4a5c6a;
+      --slate: #5a7386;
+      --fog: #eef3f6;
+      --snow: #f8fafb;
+      --line: rgba(21, 32, 40, 0.1);
+      --accent: #1f6f5b;
+      --accent-soft: rgba(31, 111, 91, 0.1);
+      --warm: #b86a2e;
+      --hero-a: #163447;
+      --hero-b: #1f5568;
+      --hero-c: #1f6f5b;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 70% 45% at 0% 10%, rgba(31, 111, 91, 0.07), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 100% 0%, rgba(31, 85, 104, 0.08), transparent 50%),
+        linear-gradient(180deg, #f2f6f8 0%, var(--snow) 35%, #eef2f4 100%);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* Nav */
+    .nav {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.95rem 5vw;
+      transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease);
+    }
+
+    .nav.scrolled {
+      background: rgba(248, 250, 251, 0.9);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 1px 0 var(--line);
+    }
+
+    .nav-brand {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
+      font-size: 0.98rem;
+      letter-spacing: 0.03em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.35rem;
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-tag {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--slate);
+      letter-spacing: 0.04em;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      align-items: end;
+      padding: 6.5rem 5vw 4rem;
+      color: #f5f9fa;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .hero-plane {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background: linear-gradient(125deg, var(--hero-a) 0%, var(--hero-b) 52%, var(--hero-c) 100%);
+    }
+
+    .hero-plane::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 85%);
+      animation: gridShift 40s linear infinite;
+    }
+
+    .hero-plane::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 50% at 78% 28%, rgba(255, 255, 255, 0.12), transparent 55%),
+        radial-gradient(ellipse 35% 40% at 12% 85%, rgba(184, 106, 46, 0.18), transparent 60%);
+    }
+
+    .hero-orbit {
+      position: absolute;
+      right: 4vw;
+      top: 14%;
+      width: min(46vw, 520px);
+      aspect-ratio: 1;
+      z-index: -1;
+      opacity: 0;
+      animation: riseIn 1.1s var(--ease) 0.25s forwards;
+      pointer-events: none;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      inset: 8%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      animation: spinSlow 48s linear infinite;
+    }
+
+    .orbit-ring:nth-child(2) {
+      inset: 20%;
+      border-style: dashed;
+      animation-direction: reverse;
+      animation-duration: 36s;
+      opacity: 0.7;
+    }
+
+    .orbit-core {
+      position: absolute;
+      inset: 32%;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .orbit-core strong {
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 900;
+      line-height: 1;
+      display: block;
+    }
+
+    .orbit-core span {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      opacity: 0.7;
+      margin-top: 0.4rem;
+      display: block;
+    }
+
+    .hero-copy {
+      max-width: 620px;
+      opacity: 0;
+      animation: riseIn 0.95s var(--ease) 0.08s forwards;
+    }
+
+    .hero-brand {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 6vw, 4.2rem);
+      line-height: 1.12;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.15rem;
+      text-shadow: 0 2px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    .hero-kicker {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      font-weight: 500;
+      color: rgba(245, 249, 250, 0.9);
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-lead {
+      font-size: 0.95rem;
+      color: rgba(245, 249, 250, 0.68);
+      max-width: 34em;
+      margin-bottom: 1.85rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.82rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.25s var(--ease), background 0.25s, border-color 0.25s;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-light {
+      background: #f5f9fa;
+      color: var(--hero-a);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #f5f9fa;
+      border: 1px solid rgba(245, 249, 250, 0.35);
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(245, 249, 250, 0.75);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      left: 5vw;
+      bottom: 1.35rem;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(245, 249, 250, 0.42);
+      opacity: 0;
+      animation: riseIn 0.7s var(--ease) 1.5s forwards;
+    }
+
+    /* Shared */
+    .wrap {
+      width: min(1120px, 90vw);
+      margin: 0 auto;
+    }
+
+    .section {
+      padding: 5rem 0;
+    }
+
+    .label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.7rem;
+    }
+
+    .title {
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
+      font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+      line-height: 1.25;
+      margin-bottom: 0.7rem;
+      max-width: 16em;
+    }
+
+    .desc {
+      color: var(--ink-muted);
+      max-width: 42em;
+      margin-bottom: 2.4rem;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 0.75s var(--ease), transform 0.75s var(--ease);
+    }
+
+    .reveal.show {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Goals strip */
+    .goals {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(248, 250, 251, 0.7);
+    }
+
+    .goal {
+      padding: 1.8rem 1.5rem;
+      border-right: 1px solid var(--line);
+    }
+
+    .goal:last-child { border-right: none; }
+
+    .goal-code {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      color: var(--warm);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.45rem;
+    }
+
+    .goal h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+    }
+
+    .goal p {
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+    }
+
+    /* Module index jump */
+    .index-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .index-bar a {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      background: var(--snow);
+      color: var(--ink-muted);
+      transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.25s var(--ease);
+    }
+
+    .index-bar a:hover {
+      color: var(--accent);
+      border-color: rgba(31, 111, 91, 0.35);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    /* Modules */
+    .modules {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .module {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 1.5rem 2rem;
+      padding: 2.1rem 0;
+      border-top: 1px solid var(--line);
+      align-items: start;
+      transition: background 0.3s;
+    }
+
+    .module:last-child { border-bottom: 1px solid var(--line); }
+
+    .module:hover { background: rgba(31, 111, 91, 0.03); }
+
+    .module-num {
+      font-family: "Noto Serif SC", serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .module-body h3 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.55rem;
+    }
+
+    .module-body p {
+      color: var(--ink-muted);
+      font-size: 0.96rem;
+      max-width: 52em;
+      margin-bottom: 1rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tag {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.7rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(31, 111, 91, 0.16);
+    }
+
+    /* Architecture */
+    .arch {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .arch-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.95rem 1.1rem;
+      background: var(--snow);
+      border-left: 3px solid var(--accent);
+      border: 1px solid var(--line);
+      border-left-width: 3px;
+      border-left-color: var(--accent);
+    }
+
+    .arch-row:nth-child(odd) { background: #f4f8f7; }
+
+    .arch-layer {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+
+    .arch-desc {
+      font-size: 0.92rem;
+      color: var(--ink-muted);
+    }
+
+    .arch-desc strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .tech-note {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+    }
+
+    /* Closing */
+    .closing {
+      margin: 1rem 0 0;
+      padding: 4.5rem 5vw;
+      background: linear-gradient(130deg, var(--hero-a), var(--hero-b) 55%, var(--hero-c));
+      color: #f5f9fa;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .closing::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -18deg,
+        transparent,
+        transparent 40px,
+        rgba(255, 255, 255, 0.025) 40px,
+        rgba(255, 255, 255, 0.025) 41px
+      );
+      pointer-events: none;
+    }
+
+    .closing .wrap { position: relative; }
+
+    .closing .label { color: rgba(184, 106, 46, 0.95); }
+
+    .closing .title {
+      color: #f5f9fa;
+      max-width: 18em;
+      margin-bottom: 1rem;
+    }
+
+    .closing p {
+      max-width: 40em;
+      color: rgba(245, 249, 250, 0.72);
+      margin-bottom: 1.5rem;
+    }
+
+    .closing-points {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      list-style: none;
+    }
+
+    .closing-points li {
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 1rem;
+    }
+
+    footer {
+      padding: 2.5rem 5vw;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.84rem;
+      color: var(--ink-muted);
+      border-top: 1px solid var(--line);
+    }
+
+    footer strong {
+      font-family: "Noto Serif SC", serif;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes spinSlow {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes gridShift {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: 56px 56px, 56px 56px; }
+    }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hero-orbit {
+        width: min(58vw, 360px);
+        top: 10%;
+        opacity: 0.5;
+      }
+      .goals,
+      .closing-points { grid-template-columns: 1fr; }
+      .goal { border-right: none; border-bottom: 1px solid var(--line); }
+      .goal:last-child { border-bottom: none; }
+      .module { grid-template-columns: 64px 1fr; gap: 0.75rem 1.1rem; }
+      .arch-row { grid-template-columns: 1fr; gap: 0.35rem; }
+    }
+
+    @media (max-width: 600px) {
+      .hero-orbit { display: none; }
+      .hero-brand { font-size: 2.15rem; }
+      .module-num { font-size: 1.8rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-brand">笔录智能管理 · 建设内容</div>
+    <ul class="nav-links">
+      <li><a href="#goals">建设目标</a></li>
+      <li><a href="#modules">九大模块</a></li>
+      <li><a href="#architecture">技术路线</a></li>
+    </ul>
+    <div class="nav-tag">初步规划</div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-plane" aria-hidden="true"></div>
+    <div class="hero-orbit" aria-hidden="true">
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-core">
+        <strong>09</strong>
+        <span>MODULES</span>
+      </div>
+    </div>
+    <div class="hero-copy">
+      <h1 class="hero-brand">九大功能模块<br />建设内容规划</h1>
+      <p class="hero-kicker">案件卷宗笔录智能化管理工具 · 项目立项方案</p>
+      <p class="hero-lead">围绕数据汇聚、笔录生成、智能校验、知识库与分析建议，构建可落地的九大能力模块，支撑办案全流程提效与风险防控。</p>
+      <div class="hero-cta">
+        <a class="btn btn-light" href="#modules">浏览九大模块</a>
+        <a class="btn btn-outline" href="#architecture">查看技术路线</a>
+      </div>
+    </div>
+    <div class="hero-scroll">Scroll</div>
+  </header>
+
+  <section class="section" id="goals">
+    <div class="wrap reveal">
+      <p class="label">02.1 · Goals</p>
+      <h2 class="title">项目建设目标</h2>
+      <p class="desc">汇聚多源异构案件数据并标准化处理，自动生成卷宗笔录；搭建主题知识库，依托大模型与 RAG，输出案件分析与处置建议。</p>
+    </div>
+    <div class="goals reveal">
+      <article class="goal">
+        <div class="goal-code">A · 提效率</div>
+        <h3>效率目标</h3>
+        <p>语音转写自动生成笔录、多源数据自动汇聚、卷宗自动整理，减少手工录入与整理时间。</p>
+      </article>
+      <article class="goal">
+        <div class="goal-code">B · 防违规</div>
+        <h3>合规目标</h3>
+        <p>智能提示与合规性校验，规避问话不全、程序瑕疵，保障办案程序合法性。</p>
+      </article>
+      <article class="goal">
+        <div class="goal-code">C · 降退卷</div>
+        <h3>质量目标</h3>
+        <p>全面性、一致性、合规性自动校验，减少材料错漏与证据不足，防范退卷与误判。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="modules">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="label">02.2 · Construction</p>
+        <h2 class="title">建设内容：九大功能模块</h2>
+        <p class="desc">依据《笔录智能化管理初步规划》立项方案，以下九大模块构成系统核心建设内容。</p>
+        <nav class="index-bar" aria-label="模块快捷导航">
+          <a href="#m1">01 数据汇聚</a>
+          <a href="#m2">02 卷宗生成</a>
+          <a href="#m3">03 实时笔录</a>
+          <a href="#m4">04 智能识别</a>
+          <a href="#m5">05 智能校验</a>
+          <a href="#m6">06 知识库</a>
+          <a href="#m7">07 分析建议</a>
+          <a href="#m8">08 网络适配</a>
+          <a href="#m9">09 数据分析</a>
+        </nav>
+      </div>
+
+      <div class="modules">
+        <article class="module reveal" id="m1">
+          <div class="module-num">01</div>
+          <div class="module-body">
+            <h3>多源数据汇聚模块</h3>
+            <p>支持系统对接、扫描件/图片/文档导入、录音文件上传等多种方式，汇聚异构案件证据数据，作为笔录生成和卷宗整理的数据基础。</p>
+            <div class="tags">
+              <span class="tag">数据接入</span>
+              <span class="tag">多格式兼容</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m2">
+          <div class="module-num">02</div>
+          <div class="module-body">
+            <h3>数据处理与卷宗生成模块</h3>
+            <p>对汇聚的多源数据做标准化、结构化处理，按照公安规范格式输出卷宗、笔录文件，实现从原始数据到规范卷宗的自动转换。</p>
+            <div class="tags">
+              <span class="tag">标准化</span>
+              <span class="tag">格式输出</span>
+              <span class="tag">卷宗生成</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m3">
+          <div class="module-num">03</div>
+          <div class="module-body">
+            <h3>实时问话笔录模块</h3>
+            <p>支持文件上传生成和审讯实时生成两种模式。实时语音转写、环境降噪；联动知识库动态推送问话建议，实时做供述一致性检查。</p>
+            <div class="tags">
+              <span class="tag">语音转写</span>
+              <span class="tag">实时生成</span>
+              <span class="tag">降噪</span>
+              <span class="tag">问话建议</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m4">
+          <div class="module-num">04</div>
+          <div class="module-body">
+            <h3>智能识别模块</h3>
+            <p>对图片、文档进行智能识别，自动判定材料类型；识别异常时读取文件名辅助判定材料属性，确保材料分类准确。</p>
+            <div class="tags">
+              <span class="tag">OCR识别</span>
+              <span class="tag">文档分类</span>
+              <span class="tag">容错处理</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m5">
+          <div class="module-num">05</div>
+          <div class="module-body">
+            <h3>卷宗智能校验模块</h3>
+            <p>实现全面性（关键内容完整）、一致性（多份笔录矛盾）、合规性（程序合法）自动核查。重点针对团伙作案做多份笔录交叉比对；办案结束自动提示缺失证据清单。</p>
+            <div class="tags">
+              <span class="tag">全面性</span>
+              <span class="tag">一致性</span>
+              <span class="tag">合规性</span>
+              <span class="tag">缺失提示</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m6">
+          <div class="module-num">06</div>
+          <div class="module-body">
+            <h3>主题知识库管理模块</h3>
+            <p>搭建案件主题知识库，涵盖法律法规、历史卷宗笔录、检法退卷意见，支持更新维护，为问话建议与智能分析提供知识底座。</p>
+            <div class="tags">
+              <span class="tag">多类案件</span>
+              <span class="tag">法规库</span>
+              <span class="tag">历史卷宗</span>
+              <span class="tag">退卷意见</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m7">
+          <div class="module-num">07</div>
+          <div class="module-body">
+            <h3>智能分析建议模块</h3>
+            <p>结合大模型 + RAG 技术，出警前输出处置建议，办案过程输出问话指引，提供案件分析和风险提示，预防办案违规操作，是知识库与笔录模块之间的智能大脑。</p>
+            <div class="tags">
+              <span class="tag">大模型</span>
+              <span class="tag">RAG</span>
+              <span class="tag">问话指引</span>
+              <span class="tag">风险提示</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m8">
+          <div class="module-num">08</div>
+          <div class="module-body">
+            <h3>网络适配模块</h3>
+            <p>区分在线联网模式和离线单机模式，保障看守所、拘留所等断网环境可正常使用。离线模式下核心功能可用，联网后自动同步数据。</p>
+            <div class="tags">
+              <span class="tag">在线模式</span>
+              <span class="tag">离线模式</span>
+              <span class="tag">数据同步</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="module reveal" id="m9">
+          <div class="module-num">09</div>
+          <div class="module-body">
+            <h3>数据分析模块</h3>
+            <p>对笔录数据进行多维统计分析，包括案件类型分布、笔录质量趋势、退卷原因归因等，支撑笔录质量持续改进。</p>
+            <div class="tags">
+              <span class="tag">多维统计</span>
+              <span class="tag">质量趋势</span>
+              <span class="tag">退卷归因</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="architecture">
+    <div class="wrap reveal">
+      <p class="label">02.3 · Architecture</p>
+      <h2 class="title">技术路线：系统架构分层</h2>
+      <p class="desc">自设备层至输出层，形成「采集—处理—智能—业务—知识—输出」闭环。</p>
+      <div class="arch">
+        <div class="arch-row">
+          <div class="arch-layer">设备层</div>
+          <div class="arch-desc"><strong>多终端适配</strong> — 兼容手机、电脑</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">网络适配层</div>
+          <div class="arch-desc"><strong>在线 / 离线双模式</strong> — 断网核心功能可用，联网同步</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">数据汇聚层</div>
+          <div class="arch-desc"><strong>多源数据接入</strong> — 系统对接、文件导入、实时音频</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">AI 处理层</div>
+          <div class="arch-desc"><strong>ASR + OCR + 大模型 RAG</strong> — 语音转写、OCR 识别、智能分析</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">业务逻辑层</div>
+          <div class="arch-desc"><strong>生成 + 校验 + 知识库引擎</strong> — 笔录生成、三维校验、知识库管理</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">知识库层</div>
+          <div class="arch-desc"><strong>向量检索、RAG 增强</strong> — 法规、历史卷宗、退卷意见分类管理</div>
+        </div>
+        <div class="arch-row">
+          <div class="arch-layer">输出层</div>
+          <div class="arch-desc"><strong>规范格式输出</strong> — 卷宗笔录、问话清单、校验报告、分析报告</div>
+        </div>
+      </div>
+      <p class="tech-note">关键技术：ASR 语音转写（含降噪） · OCR 文档识别 · 大模型 + RAG · 离线部署（保障看守所等断网场景可用）</p>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="wrap reveal">
+      <p class="label">Outcome</p>
+      <h2 class="title">案件卷宗笔录智能化管理工具</h2>
+      <p>以九大模块打通办案前中后能力，从源头提升笔录质量与程序合规性。</p>
+      <ul class="closing-points">
+        <li>提升办案效率</li>
+        <li>防范办案违规</li>
+        <li>降低退卷风险</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <strong>笔录智能化管理初步规划</strong><br />
+      建设内容（九大功能模块）可视化页面
+    </div>
+    <div>依据项目立项方案 PPT 整理</div>
+  </footer>
+
+  <script>
+    (function () {
+      const nav = document.getElementById("nav");
+      const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 36);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      const items = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add("show");
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: "0px 0px -36px 0px" }
+        );
+        items.forEach((el) => io.observe(el));
+      } else {
+        items.forEach((el) => el.classList.add("show"));
+      }
+    })();
+  </script>
+</body>
+</html>
